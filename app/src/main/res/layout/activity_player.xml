@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/backgroundColor"
+    tools:context=".activities.PlayerActivity">
+
+    <!-- Top Bar -->
+    <ImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_margin="16dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Back"
+        android:src="@android:drawable/ic_menu_revert"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/onBackground" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Now Playing"
+        android:textColor="@color/onBackground"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@id/btnBack"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/btnBack" />
+
+    <!-- Album Art Section -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardAlbumArt"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_margin="40dp"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="12dp"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnBack">
+
+        <ImageView
+            android:id="@+id/ivAlbumArt"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@android:drawable/ic_menu_gallery"
+            app:tint="@color/primaryColor" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Song Info -->
+    <TextView
+        android:id="@+id/tvPlayerTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:fontFamily="sans-serif-black"
+        android:text="Song Title"
+        android:textColor="@color/onBackground"
+        android:textSize="28sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cardAlbumArt" />
+
+    <TextView
+        android:id="@+id/tvPlayerArtist"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:alpha="0.7"
+        android:text="Artist Name"
+        android:textColor="@color/onBackground"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvPlayerTitle" />
+
+    <!-- Progress Bar -->
+    <SeekBar
+        android:id="@+id/seekBar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginTop="40dp"
+        android:progressTint="@color/primaryColor"
+        android:thumbTint="@color/primaryColor"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvPlayerArtist" />
+
+    <TextView
+        android:id="@+id/tvCurrentTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="0:00"
+        android:textColor="@color/onBackground"
+        android:textSize="12sp"
+        app:layout_constraintStart_toStartOf="@id/seekBar"
+        app:layout_constraintTop_toBottomOf="@id/seekBar" />
+
+    <TextView
+        android:id="@+id/tvTotalTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:text="3:45"
+        android:textColor="@color/onBackground"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="@id/seekBar"
+        app:layout_constraintTop_toBottomOf="@id/seekBar" />
+
+    <!-- Controls -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="40dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <ImageButton
+            android:id="@+id/btnPrevious"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Previous"
+            android:src="@android:drawable/ic_media_previous"
+            app:tint="@color/onBackground" />
+
+        <ImageButton
+            android:id="@+id/btnPlayPause"
+            android:layout_width="88dp"
+            android:layout_height="88dp"
+            android:layout_marginHorizontal="24dp"
+            android:background="@drawable/play_button_bg"
+            android:contentDescription="Play/Pause"
+            android:elevation="8dp"
+            android:padding="16dp"
+            android:scaleType="fitCenter"
+            android:src="@android:drawable/ic_media_play"
+            app:tint="@color/white" />
+
+        <ImageButton
+            android:id="@+id/btnNext"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Next"
+            android:src="@android:drawable/ic_media_next"
+            app:tint="@color/onBackground" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
