@@ -17,6 +17,11 @@ import com.example.echobox.database.DBHelper;
 import java.io.IOException;
 import java.util.Locale;
 
+/**
+ * PlayerActivity provides the music playback interface.
+ * It uses Android's MediaPlayer to play audio files, updates a SeekBar to show progress,
+ * and allows users to play/pause music.
+ */
 public class PlayerActivity extends AppCompatActivity {
 
     private ImageButton btnBack, btnPrevious, btnPlayPause, btnNext;
@@ -38,6 +43,7 @@ public class PlayerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
 
+        // Bind UI components for playback control and information display
         btnBack = findViewById(R.id.btnBack);
         btnPrevious = findViewById(R.id.btnPrevious);
         btnPlayPause = findViewById(R.id.btnPlayPause);
@@ -50,6 +56,7 @@ public class PlayerActivity extends AppCompatActivity {
 
         seekBar = findViewById(R.id.seekBar);
 
+        // Retrieve song data passed from the previous activity via Intent extras
         songId = getIntent().getIntExtra("songId", -1);
         String title = getIntent().getStringExtra("title");
         String artist = getIntent().getStringExtra("artist");
@@ -58,18 +65,23 @@ public class PlayerActivity extends AppCompatActivity {
         tvPlayerTitle.setText(title != null ? title : "Unknown Title");
         tvPlayerArtist.setText(artist != null ? artist : "Unknown Artist");
 
+        // Set up button click listeners
         btnBack.setOnClickListener(v -> finish());
 
+        // Placeholders for playlist navigation (Previous/Next)
         btnPrevious.setOnClickListener(v ->
                 Toast.makeText(this, "Previous later", Toast.LENGTH_SHORT).show());
 
         btnNext.setOnClickListener(v ->
                 Toast.makeText(this, "Next later", Toast.LENGTH_SHORT).show());
 
+        // Initialize the media player with the selected song's URI
         setupMediaPlayer();
 
+        // Handle Play/Pause toggling
         btnPlayPause.setOnClickListener(v -> togglePlayback());
 
+        // Handle manual seeking within the song using the SeekBar
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -87,6 +99,10 @@ public class PlayerActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Prepares the MediaPlayer with the song's URI.
+     * Configures the SeekBar range and duration display.
+     */
     private void setupMediaPlayer() {
         if (uriString == null || uriString.isEmpty()) {
             Toast.makeText(this, "Song file missing", Toast.LENGTH_SHORT).show();
@@ -97,12 +113,13 @@ public class PlayerActivity extends AppCompatActivity {
 
         try {
             mediaPlayer.setDataSource(this, Uri.parse(uriString));
-            mediaPlayer.prepare();
+            mediaPlayer.prepare(); // Synchronous prepare for local files
 
             seekBar.setMax(mediaPlayer.getDuration());
             tvTotalTime.setText(formatTime(mediaPlayer.getDuration()));
             tvCurrentTime.setText(formatTime(0));
 
+            // Reset UI when the song finishes playing
             mediaPlayer.setOnCompletionListener(mp -> {
                 isPlaying = false;
                 btnPlayPause.setImageResource(android.R.drawable.ic_media_play);
@@ -117,6 +134,10 @@ public class PlayerActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Toggles between Play and Pause states.
+     * Updates the play count in the database when a song starts playing for the first time in this session.
+     */
     private void togglePlayback() {
         if (mediaPlayer == null) return;
 
@@ -125,6 +146,7 @@ public class PlayerActivity extends AppCompatActivity {
             isPlaying = true;
             btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
 
+            // Increment play count in DB for analytics/Top Played feature
             if (!countUpdated && songId != -1) {
                 DBHelper dbHelper = new DBHelper(this);
                 dbHelper.incrementPlayCount(songId);
@@ -140,6 +162,9 @@ public class PlayerActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Starts a periodic update to the SeekBar and current time TextView.
+     */
     private void startSeekBarUpdates() {
         updateSeekBar = new Runnable() {
             @Override
@@ -148,6 +173,7 @@ public class PlayerActivity extends AppCompatActivity {
                     int currentPosition = mediaPlayer.getCurrentPosition();
                     seekBar.setProgress(currentPosition);
                     tvCurrentTime.setText(formatTime(currentPosition));
+                    // Update every 500ms
                     handler.postDelayed(this, 500);
                 }
             }
@@ -155,12 +181,18 @@ public class PlayerActivity extends AppCompatActivity {
         handler.post(updateSeekBar);
     }
 
+    /**
+     * Stops the periodic SeekBar updates to save resources when paused or destroyed.
+     */
     private void stopSeekBarUpdates() {
         if (updateSeekBar != null) {
             handler.removeCallbacks(updateSeekBar);
         }
     }
 
+    /**
+     * Helper to format milliseconds into a mm:ss string.
+     */
     private String formatTime(int milliseconds) {
         int totalSeconds = milliseconds / 1000;
         int minutes = totalSeconds / 60;
@@ -173,6 +205,7 @@ public class PlayerActivity extends AppCompatActivity {
         super.onDestroy();
         stopSeekBarUpdates();
 
+        // Release MediaPlayer resources when the Activity is closed
         if (mediaPlayer != null) {
             mediaPlayer.release();
             mediaPlayer = null;

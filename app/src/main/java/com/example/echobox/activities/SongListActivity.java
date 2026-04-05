@@ -17,6 +17,10 @@ import com.google.android.material.floatingactionbutton.ExtendedFloatingActionBu
 
 import java.util.ArrayList;
 
+/**
+ * SongListActivity displays the user's entire music library.
+ * It fetches all saved songs from the database and displays them in a scrollable list.
+ */
 public class SongListActivity extends AppCompatActivity {
 
     private Toolbar toolbar;
@@ -31,32 +35,45 @@ public class SongListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_song_list);
 
+        // Initialize UI components
         toolbar = findViewById(R.id.toolbar);
         tvSongCount = findViewById(R.id.tvSongCount);
         rvSongs = findViewById(R.id.rvSongs);
         fabAddSongList = findViewById(R.id.fabAddSongList);
 
+        // Set up the Toolbar with a back button
         setSupportActionBar(toolbar);
         toolbar.setNavigationOnClickListener(v -> finish());
 
         dbHelper = new DBHelper(this);
-        songs = dbHelper.getAllSongs();
+        
+        // Initial data load and UI setup
+        refreshSongList();
 
-        tvSongCount.setText(songs.size() + (songs.size() == 1 ? " Song" : " Songs"));
-
-        rvSongs.setLayoutManager(new LinearLayoutManager(this));
-        rvSongs.setAdapter(new SongAdapter(this, songs));
-
+        // Navigate to AddSongActivity when the FAB is clicked
         fabAddSongList.setOnClickListener(v ->
                 startActivity(new Intent(SongListActivity.this, AddSongActivity.class)));
     }
 
+    /**
+     * Refresh the list whenever the user returns to this activity.
+     * This ensures the list is up-to-date if a new song was just added.
+     */
     @Override
     protected void onResume() {
         super.onResume();
+        refreshSongList();
+    }
 
+    /**
+     * Fetches the latest song list from the database, updates the count display,
+     * and re-attaches the adapter to the RecyclerView.
+     */
+    private void refreshSongList() {
         songs = dbHelper.getAllSongs();
         tvSongCount.setText(songs.size() + (songs.size() == 1 ? " Song" : " Songs"));
+
+        rvSongs.setLayoutManager(new LinearLayoutManager(this));
         rvSongs.setAdapter(new SongAdapter(this, songs));
     }
 }

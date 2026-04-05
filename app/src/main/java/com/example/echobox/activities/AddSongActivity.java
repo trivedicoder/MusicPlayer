@@ -17,6 +17,10 @@ import com.example.echobox.database.DBHelper;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
+/**
+ * AddSongActivity allows users to add a new song to their local library.
+ * It provides a form to enter song details (title, artist) and pick an audio file from the device.
+ */
 public class AddSongActivity extends AppCompatActivity {
 
     private Toolbar toolbar;
@@ -27,12 +31,18 @@ public class AddSongActivity extends AppCompatActivity {
     private Uri selectedAudioUri;
     private DBHelper dbHelper;
 
+    /**
+     * Launcher for the system file picker. Handles the result of picking an audio file,
+     * requests persistable URI permissions so the app can access the file later,
+     * and updates the UI with the selected filename.
+     */
     private final ActivityResultLauncher<Intent> filePickerLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                     selectedAudioUri = result.getData().getData();
 
                     if (selectedAudioUri != null) {
+                        // Request persistable permission to access the file across reboots
                         final int takeFlags = result.getData().getFlags()
                                 & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 
@@ -54,6 +64,7 @@ public class AddSongActivity extends AppCompatActivity {
 
         dbHelper = new DBHelper(this);
 
+        // Initialize UI components and Toolbar
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setNavigationOnClickListener(v -> finish());
@@ -64,11 +75,14 @@ public class AddSongActivity extends AppCompatActivity {
         btnSaveSong = findViewById(R.id.btnSaveSong);
         tvSelectedFile = findViewById(R.id.tvSelectedFile);
 
+        // Set up click listeners
         btnChooseAudio.setOnClickListener(v -> openAudioPicker());
-
         btnSaveSong.setOnClickListener(v -> saveSong());
     }
 
+    /**
+     * Launches the system intent to pick an audio file.
+     */
     private void openAudioPicker() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -76,6 +90,10 @@ public class AddSongActivity extends AppCompatActivity {
         filePickerLauncher.launch(intent);
     }
 
+    /**
+     * Validates user input and saves the song information (title, artist, and file URI)
+     * into the local database using DBHelper.
+     */
     private void saveSong() {
         String title = etSongTitle.getText() != null ? etSongTitle.getText().toString().trim() : "";
         String artist = etSongArtist.getText() != null ? etSongArtist.getText().toString().trim() : "";
@@ -105,6 +123,9 @@ public class AddSongActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Helper method to extract the display name of a file from its Uri.
+     */
     private String getFileName(Uri uri) {
         String result = "Selected audio";
         try (android.database.Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {

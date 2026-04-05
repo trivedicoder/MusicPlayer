@@ -1,5 +1,9 @@
 package com.example.echobox.models;
 
+/**
+ * Model class representing a Song in the application.
+ * It stores metadata such as title, artist, file URI, and playback statistics.
+ */
 public class Song {
     private int id;
     private String title;
@@ -7,9 +11,15 @@ public class Song {
     private String uri;
     private int playCount;
 
+    /**
+     * Default constructor for Song.
+     */
     public Song() {
     }
 
+    /**
+     * Parameterized constructor for Song.
+     */
     public Song(int id, String title, String artist, String uri, int playCount) {
         this.id = id;
         this.title = title;
@@ -18,13 +28,17 @@ public class Song {
         this.playCount = playCount;
     }
 
+    // Getters and Setters
+
     public int getId() {
         return id;
     }
 
     public void setId(int id) {
         this.id = id;
-    }    public String getTitle() {
+    }
+
+    public String getTitle() {
         return title;
     }
 

@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/backgroundColor"
-    tools:context=".activities.PlayerActivity">
+    android:background="@color/backgroundColor">
 
-    <!-- Top Bar -->
     <ImageButton
         android:id="@+id/btnBack"
         android:layout_width="48dp"
@@ -32,7 +29,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/btnBack" />
 
-    <!-- Album Art Section -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardAlbumArt"
         android:layout_width="0dp"
@@ -54,16 +50,15 @@
             app:tint="@color/primaryColor" />
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Song Info -->
     <TextView
         android:id="@+id/tvPlayerTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
-        android:fontFamily="sans-serif-black"
         android:text="Song Title"
         android:textColor="@color/onBackground"
         android:textSize="28sp"
+        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/cardAlbumArt" />
@@ -73,7 +68,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:alpha="0.7"
         android:text="Artist Name"
         android:textColor="@color/onBackground"
         android:textSize="18sp"
@@ -81,15 +75,12 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvPlayerTitle" />
 
-    <!-- Progress Bar -->
     <SeekBar
         android:id="@+id/seekBar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="24dp"
         android:layout_marginTop="40dp"
-        android:progressTint="@color/primaryColor"
-        android:thumbTint="@color/primaryColor"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvPlayerArtist" />
@@ -98,7 +89,6 @@
         android:id="@+id/tvCurrentTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:text="0:00"
         android:textColor="@color/onBackground"
@@ -111,14 +101,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:text="3:45"
+        android:text="0:00"
         android:textColor="@color/onBackground"
         android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="@id/seekBar"
         app:layout_constraintTop_toBottomOf="@id/seekBar" />
 
-    <!-- Controls -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -143,9 +131,7 @@
             android:layout_marginHorizontal="24dp"
             android:background="@drawable/play_button_bg"
             android:contentDescription="Play/Pause"
-            android:elevation="8dp"
             android:padding="16dp"
-            android:scaleType="fitCenter"
             android:src="@android:drawable/ic_media_play"
             app:tint="@color/white" />
 
