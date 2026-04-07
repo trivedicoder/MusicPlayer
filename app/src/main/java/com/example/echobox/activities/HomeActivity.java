@@ -11,6 +11,7 @@ import com.example.echobox.utils.SessionManager;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -29,7 +30,9 @@ public class HomeActivity extends AppCompatActivity {
 
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        toolbar.setTitle("Hello, " + sessionManager.getUsername() + "!");
+
+        String email = sessionManager.getEmail();
+        toolbar.setTitle("Hello, " + email + "!");
 
         cardMySongs = findViewById(R.id.cardMySongs);
         cardTopPlayed = findViewById(R.id.cardTopPlayed);
@@ -50,6 +53,7 @@ public class HomeActivity extends AppCompatActivity {
                 startActivity(new Intent(HomeActivity.this, SongListActivity.class)));
 
         btnLogout.setOnClickListener(v -> {
+            FirebaseAuth.getInstance().signOut();
             sessionManager.logoutUser();
             startActivity(new Intent(HomeActivity.this, LoginActivity.class));
             finish();
