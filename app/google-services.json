@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "810236868738",
+    "project_id": "echobox-c32ee",
+    "storage_bucket": "echobox-c32ee.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:810236868738:android:a2b62c1e0c610bba3fdc9b",
+        "android_client_info": {
+          "package_name": "com.example.echobox"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDwhQ0KCQmlgYs1T7IIQRUMQrubneICJww"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
