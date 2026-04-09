@@ -1,25 +1,17 @@
 package com.example.echobox.models;
 
-/**
- * Model class representing a Song in the application.
- * It stores metadata such as title, artist, file URI, and playback statistics.
- */
-public class Song {
+import java.io.Serializable;
+
+public class Song implements Serializable {
     private int id;
     private String title;
     private String artist;
     private String uri;
     private int playCount;
 
-    /**
-     * Default constructor for Song.
-     */
     public Song() {
     }
 
-    /**
-     * Parameterized constructor for Song.
-     */
     public Song(int id, String title, String artist, String uri, int playCount) {
         this.id = id;
         this.title = title;
@@ -27,8 +19,6 @@ public class Song {
         this.uri = uri;
         this.playCount = playCount;
     }
-
-    // Getters and Setters
 
     public int getId() {
         return id;

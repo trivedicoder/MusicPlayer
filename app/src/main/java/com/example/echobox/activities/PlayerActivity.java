@@ -1,214 +1,243 @@
 package com.example.echobox.activities;
 
+import android.media.AudioAttributes;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.widget.ImageButton;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.echobox.R;
-import com.example.echobox.database.DBHelper;
+import com.example.echobox.models.Song;
+import com.google.android.material.button.MaterialButton;
 
 import java.io.IOException;
-import java.util.Locale;
+import java.util.ArrayList;
+import java.util.Random;
 
-/**
- * PlayerActivity provides the music playback interface.
- * It uses Android's MediaPlayer to play audio files, updates a SeekBar to show progress,
- * and allows users to play/pause music.
- */
 public class PlayerActivity extends AppCompatActivity {
 
-    private ImageButton btnBack, btnPrevious, btnPlayPause, btnNext;
-    private TextView tvPlayerTitle, tvPlayerArtist, tvCurrentTime, tvTotalTime;
-    private SeekBar seekBar;
+    private TextView tvSongTitle, tvArtist;
+    private ImageButton btnPlayPause, btnNext, btnPrevious;
+    private MaterialButton btnShuffle, btnRepeat;
 
     private MediaPlayer mediaPlayer;
-    private boolean isPlaying = false;
-    private boolean countUpdated = false;
+    private ArrayList<Song> songList;
+    private int currentPosition = 0;
 
-    private final Handler handler = new Handler();
-    private Runnable updateSeekBar;
-
-    private int songId = -1;
-    private String uriString;
+    private boolean isShuffleOn = false;
+    private boolean isRepeatOn = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
 
-        // Bind UI components for playback control and information display
-        btnBack = findViewById(R.id.btnBack);
-        btnPrevious = findViewById(R.id.btnPrevious);
+        tvSongTitle = findViewById(R.id.tvSongTitle);
+        tvArtist = findViewById(R.id.tvArtist);
         btnPlayPause = findViewById(R.id.btnPlayPause);
         btnNext = findViewById(R.id.btnNext);
+        btnPrevious = findViewById(R.id.btnPrevious);
+        btnShuffle = findViewById(R.id.btnShuffle);
+        btnRepeat = findViewById(R.id.btnRepeat);
 
-        tvPlayerTitle = findViewById(R.id.tvPlayerTitle);
-        tvPlayerArtist = findViewById(R.id.tvPlayerArtist);
-        tvCurrentTime = findViewById(R.id.tvCurrentTime);
-        tvTotalTime = findViewById(R.id.tvTotalTime);
+        Object extra = getIntent().getSerializableExtra("songList");
+        if (extra instanceof ArrayList<?>) {
+            try {
+                songList = (ArrayList<Song>) extra;
+            } catch (Exception e) {
+                songList = new ArrayList<>();
+            }
+        } else {
+            songList = new ArrayList<>();
+        }
 
-        seekBar = findViewById(R.id.seekBar);
+        currentPosition = getIntent().getIntExtra("currentPosition", 0);
 
-        // Retrieve song data passed from the previous activity via Intent extras
-        songId = getIntent().getIntExtra("songId", -1);
-        String title = getIntent().getStringExtra("title");
-        String artist = getIntent().getStringExtra("artist");
-        uriString = getIntent().getStringExtra("uri");
+        if (songList == null) {
+            songList = new ArrayList<>();
+        }
 
-        tvPlayerTitle.setText(title != null ? title : "Unknown Title");
-        tvPlayerArtist.setText(artist != null ? artist : "Unknown Artist");
+        if (songList.isEmpty()) {
+            Toast.makeText(this, "No songs found", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
-        // Set up button click listeners
-        btnBack.setOnClickListener(v -> finish());
+        if (currentPosition < 0 || currentPosition >= songList.size()) {
+            currentPosition = 0;
+        }
 
-        // Placeholders for playlist navigation (Previous/Next)
-        btnPrevious.setOnClickListener(v ->
-                Toast.makeText(this, "Previous later", Toast.LENGTH_SHORT).show());
+        updateModeButtons();
+        playSong(currentPosition);
 
-        btnNext.setOnClickListener(v ->
-                Toast.makeText(this, "Next later", Toast.LENGTH_SHORT).show());
+        btnPlayPause.setOnClickListener(v -> {
+            if (mediaPlayer == null) return;
 
-        // Initialize the media player with the selected song's URI
-        setupMediaPlayer();
+            if (mediaPlayer.isPlaying()) {
+                mediaPlayer.pause();
+                btnPlayPause.setImageResource(android.R.drawable.ic_media_play);
+            } else {
+                mediaPlayer.start();
+                btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
+            }
+        });
 
-        // Handle Play/Pause toggling
-        btnPlayPause.setOnClickListener(v -> togglePlayback());
+        btnNext.setOnClickListener(v -> {
+            if (songList.isEmpty()) return;
 
-        // Handle manual seeking within the song using the SeekBar
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (fromUser && mediaPlayer != null) {
-                    mediaPlayer.seekTo(progress);
-                    tvCurrentTime.setText(formatTime(progress));
+            if (isShuffleOn) {
+                currentPosition = getRandomSongIndex();
+            } else {
+                currentPosition++;
+                if (currentPosition >= songList.size()) {
+                    currentPosition = 0;
                 }
             }
 
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
+            playSong(currentPosition);
+        });
 
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
+        btnPrevious.setOnClickListener(v -> {
+            if (songList.isEmpty()) return;
+
+            if (isShuffleOn) {
+                currentPosition = getRandomSongIndex();
+            } else {
+                currentPosition--;
+                if (currentPosition < 0) {
+                    currentPosition = songList.size() - 1;
+                }
+            }
+
+            playSong(currentPosition);
+        });
+
+        btnShuffle.setOnClickListener(v -> {
+            isShuffleOn = !isShuffleOn;
+            if (isShuffleOn) {
+                isRepeatOn = false;
+            }
+            updateModeButtons();
+        });
+
+        btnRepeat.setOnClickListener(v -> {
+            isRepeatOn = !isRepeatOn;
+            if (isRepeatOn) {
+                isShuffleOn = false;
+            }
+            updateModeButtons();
         });
     }
 
-    /**
-     * Prepares the MediaPlayer with the song's URI.
-     * Configures the SeekBar range and duration display.
-     */
-    private void setupMediaPlayer() {
-        if (uriString == null || uriString.isEmpty()) {
-            Toast.makeText(this, "Song file missing", Toast.LENGTH_SHORT).show();
+    private void updateModeButtons() {
+        btnShuffle.setText(isShuffleOn ? "Shuffle ON" : "Shuffle");
+        btnRepeat.setText(isRepeatOn ? "Repeat ON" : "Repeat");
+    }
+
+    private int getRandomSongIndex() {
+        if (songList == null || songList.isEmpty()) {
+            return 0;
+        }
+
+        if (songList.size() == 1) {
+            return 0;
+        }
+
+        Random random = new Random();
+        int randomIndex;
+        do {
+            randomIndex = random.nextInt(songList.size());
+        } while (randomIndex == currentPosition);
+
+        return randomIndex;
+    }
+
+    private void playSong(int position) {
+        if (songList == null || songList.isEmpty()) {
+            Toast.makeText(this, "No songs found", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        if (position < 0 || position >= songList.size()) {
+            position = 0;
+        }
+
+        currentPosition = position;
+        Song song = songList.get(position);
+
+        tvSongTitle.setText(song.getTitle() != null ? song.getTitle() : "Unknown Title");
+        tvArtist.setText(song.getArtist() != null ? song.getArtist() : "Unknown Artist");
+
+        releasePlayer();
 
         mediaPlayer = new MediaPlayer();
 
         try {
+            mediaPlayer.setAudioAttributes(
+                    new AudioAttributes.Builder()
+                            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                            .setUsage(AudioAttributes.USAGE_MEDIA)
+                            .build()
+            );
+
+            String uriString = song.getUri();
+            if (uriString == null || uriString.trim().isEmpty()) {
+                Toast.makeText(this, "Song file is missing", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             mediaPlayer.setDataSource(this, Uri.parse(uriString));
-            mediaPlayer.prepare(); // Synchronous prepare for local files
+            mediaPlayer.prepare();
+            mediaPlayer.start();
 
-            seekBar.setMax(mediaPlayer.getDuration());
-            tvTotalTime.setText(formatTime(mediaPlayer.getDuration()));
-            tvCurrentTime.setText(formatTime(0));
+            btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
 
-            // Reset UI when the song finishes playing
             mediaPlayer.setOnCompletionListener(mp -> {
-                isPlaying = false;
-                btnPlayPause.setImageResource(android.R.drawable.ic_media_play);
-                seekBar.setProgress(0);
-                tvCurrentTime.setText(formatTime(0));
-                stopSeekBarUpdates();
+                if (isRepeatOn) {
+                    playSong(currentPosition);
+                } else if (isShuffleOn) {
+                    currentPosition = getRandomSongIndex();
+                    playSong(currentPosition);
+                } else {
+                    currentPosition++;
+                    if (currentPosition >= songList.size()) {
+                        currentPosition = 0;
+                    }
+                    playSong(currentPosition);
+                }
             });
 
-        } catch (IOException e) {
-            Toast.makeText(this, "Could not load audio", Toast.LENGTH_SHORT).show();
+        } catch (IOException | IllegalArgumentException | SecurityException e) {
+            Toast.makeText(this, "Unable to play song", Toast.LENGTH_SHORT).show();
             e.printStackTrace();
         }
     }
 
-    /**
-     * Toggles between Play and Pause states.
-     * Updates the play count in the database when a song starts playing for the first time in this session.
-     */
-    private void togglePlayback() {
-        if (mediaPlayer == null) return;
-
-        if (!isPlaying) {
-            mediaPlayer.start();
-            isPlaying = true;
-            btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
-
-            // Increment play count in DB for analytics/Top Played feature
-            if (!countUpdated && songId != -1) {
-                DBHelper dbHelper = new DBHelper(this);
-                dbHelper.incrementPlayCount(songId);
-                countUpdated = true;
+    private void releasePlayer() {
+        if (mediaPlayer != null) {
+            try {
+                mediaPlayer.stop();
+            } catch (IllegalStateException ignored) {
             }
 
-            startSeekBarUpdates();
-        } else {
-            mediaPlayer.pause();
-            isPlaying = false;
-            btnPlayPause.setImageResource(android.R.drawable.ic_media_play);
-            stopSeekBarUpdates();
+            mediaPlayer.release();
+            mediaPlayer = null;
         }
     }
 
-    /**
-     * Starts a periodic update to the SeekBar and current time TextView.
-     */
-    private void startSeekBarUpdates() {
-        updateSeekBar = new Runnable() {
-            @Override
-            public void run() {
-                if (mediaPlayer != null) {
-                    int currentPosition = mediaPlayer.getCurrentPosition();
-                    seekBar.setProgress(currentPosition);
-                    tvCurrentTime.setText(formatTime(currentPosition));
-                    // Update every 500ms
-                    handler.postDelayed(this, 500);
-                }
-            }
-        };
-        handler.post(updateSeekBar);
-    }
-
-    /**
-     * Stops the periodic SeekBar updates to save resources when paused or destroyed.
-     */
-    private void stopSeekBarUpdates() {
-        if (updateSeekBar != null) {
-            handler.removeCallbacks(updateSeekBar);
-        }
-    }
-
-    /**
-     * Helper to format milliseconds into a mm:ss string.
-     */
-    private String formatTime(int milliseconds) {
-        int totalSeconds = milliseconds / 1000;
-        int minutes = totalSeconds / 60;
-        int seconds = totalSeconds % 60;
-        return String.format(Locale.getDefault(), "%d:%02d", minutes, seconds);
+    @Override
+    protected void onStop() {
+        super.onStop();
+        releasePlayer();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        stopSeekBarUpdates();
-
-        // Release MediaPlayer resources when the Activity is closed
-        if (mediaPlayer != null) {
-            mediaPlayer.release();
-            mediaPlayer = null;
-        }
+        releasePlayer();
     }
 }
