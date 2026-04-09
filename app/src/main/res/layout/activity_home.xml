@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/backgroundColor"
+    tools:context=".activities.HomeActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        app:elevation="0dp">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:title="Hello, User!"
+            app:titleTextColor="@color/onBackground" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-black"
+                android:text="Discover"
+                android:textColor="@color/onBackground"
+                android:textSize="32sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:alpha="0.7"
+                android:text="What's your mood today?"
+                android:textColor="@color/onBackground"
+                android:textSize="16sp" />
+
+            <!-- Featured Cards -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:clipToPadding="false"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <!-- My Songs Card -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardMySongs"
+                        android:layout_width="200dp"
+                        android:layout_height="240dp"
+                        android:layout_marginEnd="16dp"
+                        app:cardCornerRadius="24dp"
+                        app:cardElevation="4dp">
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/card_gradient_purple">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentBottom="true"
+                                android:layout_margin="20dp"
+                                android:text="My\nLibrary"
+                                android:textColor="@color/white"
+                                android:textSize="24sp"
+                                android:textStyle="bold" />
+                        </RelativeLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- Top Played Card -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardTopPlayed"
+                        android:layout_width="200dp"
+                        android:layout_height="240dp"
+                        android:layout_marginEnd="16dp"
+                        app:cardCornerRadius="24dp"
+                        app:cardElevation="4dp">
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/card_gradient_teal">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentBottom="true"
+                                android:layout_margin="20dp"
+                                android:text="Top\nPlayed"
+                                android:textColor="@color/white"
+                                android:textSize="24sp"
+                                android:textStyle="bold" />
+                        </RelativeLayout>
+                    </com.google.android.material.card.MaterialCardView>
+                </LinearLayout>
+            </HorizontalScrollView>
+
+            <!-- Playlists Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="sans-serif-bold"
+                    android:text="Playlists"
+                    android:textColor="@color/onBackground"
+                    android:textSize="20sp" />
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvPlaylists"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:clipToPadding="false"
+                android:orientation="horizontal" />
+
+            <!-- Quick Actions -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:fontFamily="sans-serif-bold"
+                android:text="Quick Actions"
+                android:textColor="@color/onBackground"
+                android:textSize="20sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAddSongHome"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:layout_marginTop="16dp"
+                android:text="Add New Track"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                app:cornerRadius="16dp"
+                app:icon="@android:drawable/ic_input_add" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCreatePlaylist"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:layout_marginTop="8dp"
+                android:text="Create Playlist"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                app:cornerRadius="16dp"
+                app:icon="@android:drawable/ic_menu_agenda" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnLogout"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="8dp"
+                android:text="Sign Out"
+                android:textColor="@color/errorColor" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabPlayer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="24dp"
+        android:backgroundTint="@color/primaryColor"
+        android:contentDescription="Browse Songs"
+        android:src="@android:drawable/ic_media_play"
+        app:tint="@color/white" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
