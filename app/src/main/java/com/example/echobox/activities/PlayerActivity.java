@@ -4,6 +4,7 @@ import android.media.AudioAttributes;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -13,9 +14,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.echobox.R;
 import com.example.echobox.models.Song;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 public class PlayerActivity extends AppCompatActivity {
@@ -31,10 +36,14 @@ public class PlayerActivity extends AppCompatActivity {
     private boolean isShuffleOn = false;
     private boolean isRepeatOn = false;
 
+    private FirebaseFirestore db;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
+
+        db = FirebaseFirestore.getInstance();
 
         tvSongTitle = findViewById(R.id.tvSongTitle);
         tvArtist = findViewById(R.id.tvArtist);
@@ -57,11 +66,7 @@ public class PlayerActivity extends AppCompatActivity {
 
         currentPosition = getIntent().getIntExtra("currentPosition", 0);
 
-        if (songList == null) {
-            songList = new ArrayList<>();
-        }
-
-        if (songList.isEmpty()) {
+        if (songList == null || songList.isEmpty()) {
             Toast.makeText(this, "No songs found", Toast.LENGTH_SHORT).show();
             finish();
             return;
@@ -139,13 +144,8 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     private int getRandomSongIndex() {
-        if (songList == null || songList.isEmpty()) {
-            return 0;
-        }
-
-        if (songList.size() == 1) {
-            return 0;
-        }
+        if (songList == null || songList.isEmpty()) return 0;
+        if (songList.size() == 1) return 0;
 
         Random random = new Random();
         int randomIndex;
@@ -196,6 +196,9 @@ public class PlayerActivity extends AppCompatActivity {
 
             btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
 
+            // Increment play count in Firestore when song starts
+            saveOrIncrementPlayCount(song);
+
             mediaPlayer.setOnCompletionListener(mp -> {
                 if (isRepeatOn) {
                     playSong(currentPosition);
@@ -213,8 +216,27 @@ public class PlayerActivity extends AppCompatActivity {
 
         } catch (IOException | IllegalArgumentException | SecurityException e) {
             Toast.makeText(this, "Unable to play song", Toast.LENGTH_SHORT).show();
-            e.printStackTrace();
+            Log.e("PLAYER", "Playback failed", e);
         }
+    }
+
+    private void saveOrIncrementPlayCount(Song song) {
+        String docId = String.valueOf(song.getId());
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("songId", song.getId());
+        updates.put("title", song.getTitle() != null ? song.getTitle() : "");
+        updates.put("artist", song.getArtist() != null ? song.getArtist() : "");
+        updates.put("uri", song.getUri() != null ? song.getUri() : "");
+        updates.put("playCount", FieldValue.increment(1));
+
+        db.collection("songs")
+                .document(docId)
+                .set(updates, com.google.firebase.firestore.SetOptions.merge())
+                .addOnSuccessListener(unused ->
+                        Log.d("FIRESTORE", "Play count updated for " + song.getTitle()))
+                .addOnFailureListener(e ->
+                        Log.e("FIRESTORE", "Failed to update play count", e));
     }
 
     private void releasePlayer() {
@@ -223,7 +245,6 @@ public class PlayerActivity extends AppCompatActivity {
                 mediaPlayer.stop();
             } catch (IllegalStateException ignored) {
             }
-
             mediaPlayer.release();
             mediaPlayer = null;
         }
