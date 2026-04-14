@@ -2,10 +2,11 @@ package com.example.echobox.activities;
 
 import android.media.AudioAttributes;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
+import android.os.Handler;
+import android.os.Looper;
 import android.widget.ImageButton;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,240 +20,234 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Locale;
 import java.util.Random;
 
 public class PlayerActivity extends AppCompatActivity {
 
-    private TextView tvSongTitle, tvArtist;
+    private TextView tvTitle, tvArtist, tvCurrentTime, tvTotalTime;
     private ImageButton btnPlayPause, btnNext, btnPrevious;
     private MaterialButton btnShuffle, btnRepeat;
+    private SeekBar seekBar;
 
-    private MediaPlayer mediaPlayer;
-    private ArrayList<Song> songList;
-    private int currentPosition = 0;
+    private static MediaPlayer player;
 
-    private boolean isShuffleOn = false;
-    private boolean isRepeatOn = false;
+    private ArrayList<Song> list;
+    private int pos;
 
     private FirebaseFirestore db;
 
+    private boolean shuffle = false;
+    private boolean repeat = false;
+
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private final Runnable updateSeekBarRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (player != null) {
+                try {
+                    if (player.isPlaying()) {
+                        int currentPosition = player.getCurrentPosition();
+                        seekBar.setProgress(currentPosition);
+                        tvCurrentTime.setText(formatTime(currentPosition));
+                    }
+                } catch (IllegalStateException ignored) {
+                }
+            }
+            handler.postDelayed(this, 500);
+        }
+    };
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected void onCreate(Bundle b) {
+        super.onCreate(b);
         setContentView(R.layout.activity_player);
 
-        db = FirebaseFirestore.getInstance();
-
-        tvSongTitle = findViewById(R.id.tvSongTitle);
+        tvTitle = findViewById(R.id.tvSongTitle);
         tvArtist = findViewById(R.id.tvArtist);
+        tvCurrentTime = findViewById(R.id.tvCurrentTime);
+        tvTotalTime = findViewById(R.id.tvTotalTime);
         btnPlayPause = findViewById(R.id.btnPlayPause);
         btnNext = findViewById(R.id.btnNext);
         btnPrevious = findViewById(R.id.btnPrevious);
         btnShuffle = findViewById(R.id.btnShuffle);
         btnRepeat = findViewById(R.id.btnRepeat);
+        seekBar = findViewById(R.id.seekBar);
 
-        Object extra = getIntent().getSerializableExtra("songList");
-        if (extra instanceof ArrayList<?>) {
-            try {
-                songList = (ArrayList<Song>) extra;
-            } catch (Exception e) {
-                songList = new ArrayList<>();
-            }
-        } else {
-            songList = new ArrayList<>();
-        }
+        db = FirebaseFirestore.getInstance();
 
-        currentPosition = getIntent().getIntExtra("currentPosition", 0);
+        list = (ArrayList<Song>) getIntent().getSerializableExtra("songList");
+        pos = getIntent().getIntExtra("currentPosition", 0);
 
-        if (songList == null || songList.isEmpty()) {
+        if (list == null || list.isEmpty()) {
             Toast.makeText(this, "No songs found", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
-        if (currentPosition < 0 || currentPosition >= songList.size()) {
-            currentPosition = 0;
+        if (pos < 0 || pos >= list.size()) {
+            pos = 0;
         }
 
-        updateModeButtons();
-        playSong(currentPosition);
+        btnShuffle.setText("Shuffle");
+        btnRepeat.setText("Repeat");
+        tvCurrentTime.setText("0:00");
+        tvTotalTime.setText("0:00");
+
+        play();
 
         btnPlayPause.setOnClickListener(v -> {
-            if (mediaPlayer == null) return;
+            if (player == null) return;
 
-            if (mediaPlayer.isPlaying()) {
-                mediaPlayer.pause();
-                btnPlayPause.setImageResource(android.R.drawable.ic_media_play);
-            } else {
-                mediaPlayer.start();
-                btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
+            try {
+                if (player.isPlaying()) {
+                    player.pause();
+                    btnPlayPause.setImageResource(android.R.drawable.ic_media_play);
+                } else {
+                    player.start();
+                    btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
+                }
+            } catch (IllegalStateException e) {
+                Toast.makeText(this, "Playback error", Toast.LENGTH_SHORT).show();
             }
         });
 
         btnNext.setOnClickListener(v -> {
-            if (songList.isEmpty()) return;
-
-            if (isShuffleOn) {
-                currentPosition = getRandomSongIndex();
-            } else {
-                currentPosition++;
-                if (currentPosition >= songList.size()) {
-                    currentPosition = 0;
-                }
-            }
-
-            playSong(currentPosition);
+            pos = shuffle ? new Random().nextInt(list.size()) : (pos + 1) % list.size();
+            play();
         });
 
         btnPrevious.setOnClickListener(v -> {
-            if (songList.isEmpty()) return;
-
-            if (isShuffleOn) {
-                currentPosition = getRandomSongIndex();
+            if (shuffle) {
+                pos = new Random().nextInt(list.size());
             } else {
-                currentPosition--;
-                if (currentPosition < 0) {
-                    currentPosition = songList.size() - 1;
-                }
+                pos--;
+                if (pos < 0) pos = list.size() - 1;
             }
-
-            playSong(currentPosition);
+            play();
         });
 
         btnShuffle.setOnClickListener(v -> {
-            isShuffleOn = !isShuffleOn;
-            if (isShuffleOn) {
-                isRepeatOn = false;
-            }
-            updateModeButtons();
+            shuffle = !shuffle;
+            if (shuffle) repeat = false;
+            btnShuffle.setText(shuffle ? "Shuffle ON" : "Shuffle");
+            btnRepeat.setText("Repeat");
         });
 
         btnRepeat.setOnClickListener(v -> {
-            isRepeatOn = !isRepeatOn;
-            if (isRepeatOn) {
-                isShuffleOn = false;
+            repeat = !repeat;
+            if (repeat) shuffle = false;
+            btnRepeat.setText(repeat ? "Repeat ON" : "Repeat");
+            btnShuffle.setText("Shuffle");
+        });
+
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser) {
+                    tvCurrentTime.setText(formatTime(progress));
+                }
             }
-            updateModeButtons();
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                if (player != null) {
+                    try {
+                        player.seekTo(seekBar.getProgress());
+                    } catch (IllegalStateException ignored) {
+                    }
+                }
+            }
         });
     }
 
-    private void updateModeButtons() {
-        btnShuffle.setText(isShuffleOn ? "Shuffle ON" : "Shuffle");
-        btnRepeat.setText(isRepeatOn ? "Repeat ON" : "Repeat");
-    }
+    private void play() {
+        Song s = list.get(pos);
 
-    private int getRandomSongIndex() {
-        if (songList == null || songList.isEmpty()) return 0;
-        if (songList.size() == 1) return 0;
-
-        Random random = new Random();
-        int randomIndex;
-        do {
-            randomIndex = random.nextInt(songList.size());
-        } while (randomIndex == currentPosition);
-
-        return randomIndex;
-    }
-
-    private void playSong(int position) {
-        if (songList == null || songList.isEmpty()) {
-            Toast.makeText(this, "No songs found", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (position < 0 || position >= songList.size()) {
-            position = 0;
-        }
-
-        currentPosition = position;
-        Song song = songList.get(position);
-
-        tvSongTitle.setText(song.getTitle() != null ? song.getTitle() : "Unknown Title");
-        tvArtist.setText(song.getArtist() != null ? song.getArtist() : "Unknown Artist");
+        tvTitle.setText(s.getTitle());
+        tvArtist.setText(s.getArtist());
+        tvCurrentTime.setText("0:00");
 
         releasePlayer();
 
-        mediaPlayer = new MediaPlayer();
+        player = new MediaPlayer();
 
         try {
-            mediaPlayer.setAudioAttributes(
+            player.setAudioAttributes(
                     new AudioAttributes.Builder()
                             .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                             .setUsage(AudioAttributes.USAGE_MEDIA)
                             .build()
             );
 
-            String uriString = song.getUri();
-            if (uriString == null || uriString.trim().isEmpty()) {
-                Toast.makeText(this, "Song file is missing", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            mediaPlayer.setDataSource(this, Uri.parse(uriString));
-            mediaPlayer.prepare();
-            mediaPlayer.start();
+            player.setDataSource(s.getUrl());
+            player.prepare();
+            player.start();
 
             btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
 
-            // Increment play count in Firestore when song starts
-            saveOrIncrementPlayCount(song);
+            int duration = player.getDuration();
+            seekBar.setMax(duration);
+            seekBar.setProgress(0);
+            tvTotalTime.setText(formatTime(duration));
 
-            mediaPlayer.setOnCompletionListener(mp -> {
-                if (isRepeatOn) {
-                    playSong(currentPosition);
-                } else if (isShuffleOn) {
-                    currentPosition = getRandomSongIndex();
-                    playSong(currentPosition);
-                } else {
-                    currentPosition++;
-                    if (currentPosition >= songList.size()) {
-                        currentPosition = 0;
-                    }
-                    playSong(currentPosition);
-                }
-            });
+            db.collection("songs")
+                    .document(s.getId())
+                    .update("playCount", FieldValue.increment(1));
 
-        } catch (IOException | IllegalArgumentException | SecurityException e) {
+        } catch (IOException | IllegalStateException e) {
             Toast.makeText(this, "Unable to play song", Toast.LENGTH_SHORT).show();
-            Log.e("PLAYER", "Playback failed", e);
+            return;
         }
-    }
 
-    private void saveOrIncrementPlayCount(Song song) {
-        String docId = String.valueOf(song.getId());
+        player.setOnCompletionListener(mp -> {
+            if (repeat) {
+                play();
+            } else {
+                pos = shuffle ? new Random().nextInt(list.size()) : (pos + 1) % list.size();
+                play();
+            }
+        });
 
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("songId", song.getId());
-        updates.put("title", song.getTitle() != null ? song.getTitle() : "");
-        updates.put("artist", song.getArtist() != null ? song.getArtist() : "");
-        updates.put("uri", song.getUri() != null ? song.getUri() : "");
-        updates.put("playCount", FieldValue.increment(1));
-
-        db.collection("songs")
-                .document(docId)
-                .set(updates, com.google.firebase.firestore.SetOptions.merge())
-                .addOnSuccessListener(unused ->
-                        Log.d("FIRESTORE", "Play count updated for " + song.getTitle()))
-                .addOnFailureListener(e ->
-                        Log.e("FIRESTORE", "Failed to update play count", e));
+        handler.removeCallbacks(updateSeekBarRunnable);
+        handler.post(updateSeekBarRunnable);
     }
 
     private void releasePlayer() {
-        if (mediaPlayer != null) {
+        handler.removeCallbacks(updateSeekBarRunnable);
+
+        if (player != null) {
             try {
-                mediaPlayer.stop();
+                if (player.isPlaying()) {
+                    player.stop();
+                }
             } catch (IllegalStateException ignored) {
             }
-            mediaPlayer.release();
-            mediaPlayer = null;
+
+            try {
+                player.reset();
+            } catch (IllegalStateException ignored) {
+            }
+
+            player.release();
+            player = null;
         }
     }
 
+    private String formatTime(int millis) {
+        int totalSeconds = millis / 1000;
+        int minutes = totalSeconds / 60;
+        int seconds = totalSeconds % 60;
+        return String.format(Locale.getDefault(), "%d:%02d", minutes, seconds);
+    }
+
     @Override
-    protected void onStop() {
-        super.onStop();
+    protected void onPause() {
+        super.onPause();
         releasePlayer();
     }
 

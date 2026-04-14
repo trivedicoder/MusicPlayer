@@ -11,6 +11,7 @@ import com.example.echobox.utils.SessionManager;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -18,6 +19,7 @@ public class HomeActivity extends AppCompatActivity {
     private MaterialCardView cardMySongs, cardTopPlayed;
     private MaterialButton btnAddSongHome, btnLogout;
     private FloatingActionButton fabPlayer;
+
     private SessionManager sessionManager;
 
     @Override
@@ -25,20 +27,32 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        sessionManager = new SessionManager(this);
-
         toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        toolbar.setTitle("Hello, " + sessionManager.getUsername() + "!");
-
         cardMySongs = findViewById(R.id.cardMySongs);
         cardTopPlayed = findViewById(R.id.cardTopPlayed);
         btnAddSongHome = findViewById(R.id.btnAddSongHome);
         btnLogout = findViewById(R.id.btnLogout);
         fabPlayer = findViewById(R.id.fabPlayer);
 
-        btnAddSongHome.setOnClickListener(v ->
-                startActivity(new Intent(HomeActivity.this, AddSongActivity.class)));
+        sessionManager = new SessionManager(this);
+
+        setSupportActionBar(toolbar);
+
+        if (getSupportActionBar() != null) {
+            String email = sessionManager.getUserEmail();
+            String name = "User";
+
+            if (email != null && !email.isEmpty()) {
+                int atIndex = email.indexOf("@");
+                if (atIndex > 0) {
+                    name = email.substring(0, atIndex);
+                } else {
+                    name = email;
+                }
+            }
+
+            getSupportActionBar().setTitle("Hello, " + name + "!");
+        }
 
         cardMySongs.setOnClickListener(v ->
                 startActivity(new Intent(HomeActivity.this, SongListActivity.class)));
@@ -46,12 +60,19 @@ public class HomeActivity extends AppCompatActivity {
         cardTopPlayed.setOnClickListener(v ->
                 startActivity(new Intent(HomeActivity.this, TopPlayedActivity.class)));
 
+        btnAddSongHome.setOnClickListener(v ->
+                startActivity(new Intent(HomeActivity.this, AddSongActivity.class)));
+
         fabPlayer.setOnClickListener(v ->
                 startActivity(new Intent(HomeActivity.this, SongListActivity.class)));
 
         btnLogout.setOnClickListener(v -> {
+            FirebaseAuth.getInstance().signOut();
             sessionManager.logoutUser();
-            startActivity(new Intent(HomeActivity.this, LoginActivity.class));
+
+            Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
             finish();
         });
     }

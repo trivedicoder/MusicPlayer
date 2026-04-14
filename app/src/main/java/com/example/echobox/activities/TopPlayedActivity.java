@@ -1,5 +1,6 @@
 package com.example.echobox.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.TextView;
 
@@ -10,60 +11,87 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.echobox.R;
 import com.example.echobox.adapters.SongAdapter;
-import com.example.echobox.database.DBHelper;
 import com.example.echobox.models.Song;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
-/**
- * TopPlayedActivity displays a list of songs filtered by their play count.
- * It reuses the song list layout to show the most frequently played tracks
- * in descending order.
- */
 public class TopPlayedActivity extends AppCompatActivity {
 
     private Toolbar toolbar;
     private TextView tvSongCount;
     private RecyclerView rvSongs;
     private ExtendedFloatingActionButton fabAddSongList;
-    private DBHelper dbHelper;
-    private ArrayList<Song> songs;
+
+    private final ArrayList<Song> songs = new ArrayList<>();
+    private SongAdapter adapter;
+
+    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private final FirebaseAuth auth = FirebaseAuth.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Reusing the song list layout for consistency
         setContentView(R.layout.activity_song_list);
 
-        // Initialize UI components
         toolbar = findViewById(R.id.toolbar);
         tvSongCount = findViewById(R.id.tvSongCount);
         rvSongs = findViewById(R.id.rvSongs);
         fabAddSongList = findViewById(R.id.fabAddSongList);
 
-        // Set up the Toolbar with a back navigation button
         setSupportActionBar(toolbar);
         toolbar.setNavigationOnClickListener(v -> finish());
 
-        // Clear default title to use custom layout styling if needed
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("");
         }
 
-        dbHelper = new DBHelper(this);
-        
-        // Fetch only the top played songs from the database
-        songs = dbHelper.getTopPlayedSongs();
-
-        // Update the UI with the number of top songs found
-        tvSongCount.setText(songs.size() + (songs.size() == 1 ? " Song" : " Songs"));
-
-        // Configure the RecyclerView with a vertical list layout and the SongAdapter
         rvSongs.setLayoutManager(new LinearLayoutManager(this));
-        rvSongs.setAdapter(new SongAdapter(this, songs));
 
-        // Hide the "Add Song" FAB as this is a read-only list of top tracks
+        adapter = new SongAdapter(songs, position -> {
+            Intent intent = new Intent(TopPlayedActivity.this, PlayerActivity.class);
+            intent.putExtra("songList", songs);
+            intent.putExtra("currentPosition", position);
+            startActivity(intent);
+        });
+
+        rvSongs.setAdapter(adapter);
         fabAddSongList.hide();
+
+        loadTopPlayedSongs();
+    }
+
+    private void loadTopPlayedSongs() {
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser == null) {
+            songs.clear();
+            adapter.notifyDataSetChanged();
+            tvSongCount.setText("0 Songs");
+            return;
+        }
+
+        db.collection("songs")
+                .whereEqualTo("ownerId", currentUser.getUid())
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    songs.clear();
+
+                    for (com.google.firebase.firestore.QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        Song song = doc.toObject(Song.class);
+                        if (song != null) {
+                            songs.add(song);
+                        }
+                    }
+
+                    Collections.sort(songs, (s1, s2) -> Long.compare(s2.getPlayCount(), s1.getPlayCount()));
+
+                    tvSongCount.setText(songs.size() + (songs.size() == 1 ? " Song" : " Songs"));
+                    adapter.notifyDataSetChanged();
+                })
+                .addOnFailureListener(e -> tvSongCount.setText("Load failed"));
     }
 }

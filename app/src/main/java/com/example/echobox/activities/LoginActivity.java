@@ -20,6 +20,7 @@ public class LoginActivity extends AppCompatActivity {
     private TextInputEditText etEmail, etPassword;
     private MaterialButton btnLogin;
     private TextView btnGoRegister;
+
     private SessionManager sessionManager;
     private FirebaseAuth mAuth;
 
@@ -31,11 +32,7 @@ public class LoginActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
 
         FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null) {
-            sessionManager.createLoginSession(
-                    currentUser.getEmail() != null ? currentUser.getEmail() : "User",
-                    currentUser.getEmail() != null ? currentUser.getEmail() : ""
-            );
+        if (currentUser != null && sessionManager.isLoggedIn()) {
             startActivity(new Intent(LoginActivity.this, HomeActivity.class));
             finish();
             return;
@@ -72,11 +69,7 @@ public class LoginActivity extends AppCompatActivity {
                             finish();
                         } else {
                             Log.e("FIREBASE_AUTH", "Login failed", task.getException());
-                            Toast.makeText(
-                                    this,
-                                    "Login failed: " + (task.getException() != null ? task.getException().getMessage() : "Unknown error"),
-                                    Toast.LENGTH_LONG
-                            ).show();
+                            Toast.makeText(this, "Login failed", Toast.LENGTH_SHORT).show();
                         }
                     });
         });

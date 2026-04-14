@@ -3,34 +3,69 @@ package com.example.echobox.models;
 import java.io.Serializable;
 
 public class Song implements Serializable {
-    private int id;
+    private String id;
+    private String ownerId;
     private String title;
     private String artist;
-    private String uri;
-    private int playCount;
+    private String url;
+    private long playCount;
 
     public Song() {}
 
-    public Song(int id, String title, String artist, String uri, int playCount) {
+    public Song(String id, String ownerId, String title, String artist, String url, long playCount) {
         this.id = id;
+        this.ownerId = ownerId;
         this.title = title;
         this.artist = artist;
-        this.uri = uri;
+        this.url = url;
         this.playCount = playCount;
     }
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public String getId() {
+        return id;
+    }
 
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
+    public void setId(String id) {
+        this.id = id;
+    }
 
-    public String getArtist() { return artist; }
-    public void setArtist(String artist) { this.artist = artist; }
+    public String getOwnerId() {
+        return ownerId;
+    }
 
-    public String getUri() { return uri; }
-    public void setUri(String uri) { this.uri = uri; }
+    public void setOwnerId(String ownerId) {
+        this.ownerId = ownerId;
+    }
 
-    public int getPlayCount() { return playCount; }
-    public void setPlayCount(int playCount) { this.playCount = playCount; }
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getArtist() {
+        return artist;
+    }
+
+    public void setArtist(String artist) {
+        this.artist = artist;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public long getPlayCount() {
+        return playCount;
+    }
+
+    public void setPlayCount(long playCount) {
+        this.playCount = playCount;
+    }
 }
