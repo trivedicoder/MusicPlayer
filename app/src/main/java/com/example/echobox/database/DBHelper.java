@@ -90,6 +90,10 @@ public class DBHelper extends SQLiteOpenHelper {
 
     // ─── User Operations ────────────────────────────────────────────
 
+    /**
+     * Registers a new user in the database.
+     * @return true if registration was successful, false otherwise.
+     */
     public boolean registerUser(String email, String password) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -99,6 +103,9 @@ public class DBHelper extends SQLiteOpenHelper {
         return result != -1;
     }
 
+    /**
+     * Verifies user credentials for login.
+     */
     public boolean loginUser(String email, String password) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(
@@ -109,6 +116,10 @@ public class DBHelper extends SQLiteOpenHelper {
         return found;
     }
 
+    /**
+     * Retrieves user details based on credentials.
+     * Extracts a username from the email if no explicit username field is present.
+     */
     public User getUserByEmailAndPassword(String email, String password) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(
@@ -133,6 +144,10 @@ public class DBHelper extends SQLiteOpenHelper {
 
     // ─── Song Operations ────────────────────────────────────────────
 
+    /**
+     * Adds a new song to the library.
+     * @return the row ID of the newly inserted song, or -1 if an error occurred.
+     */
     public long addSong(String title, String artist, String uri) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -142,6 +157,9 @@ public class DBHelper extends SQLiteOpenHelper {
         return db.insert("songs", null, values);
     }
 
+    /**
+     * Retrieves all songs from the database, ordered by newest added.
+     */
     public ArrayList<Song> getAllSongs() {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT * FROM songs ORDER BY id DESC", null);
@@ -178,6 +196,9 @@ public class DBHelper extends SQLiteOpenHelper {
         return songs;
     }
 
+    /**
+     * Increments the play count of a specific song by its ID.
+     */
     public void incrementPlayCount(int songId) {
         SQLiteDatabase db = this.getWritableDatabase();
         db.execSQL("UPDATE songs SET playCount = playCount + 1 WHERE id = ?",

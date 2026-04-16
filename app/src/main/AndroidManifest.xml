@@ -1,5 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Network access for Firebase -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <!-- Android 13+ -->
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
 
@@ -17,7 +20,6 @@
         <activity android:name=".activities.TopPlayedActivity" android:exported="false" />
         <activity android:name=".activities.SongListActivity" android:exported="false" />
         <activity android:name=".activities.AddSongActivity" android:exported="false" />
-        <activity android:name=".activities.PlaylistActivity" android:exported="false" />
         <activity android:name=".activities.HomeActivity" android:exported="false" />
         <activity android:name=".activities.RegisterActivity" android:exported="false" />
 

@@ -14,6 +14,7 @@ import com.example.echobox.R;
 import com.example.echobox.adapters.SongAdapter;
 import com.example.echobox.database.DBHelper;
 import com.example.echobox.models.Song;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 import java.util.ArrayList;
 
@@ -36,13 +37,17 @@ public class TopPlayedActivity extends AppCompatActivity implements SongAdapter.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_top_played);
 
+        // Initialize UI components
         toolbar = findViewById(R.id.toolbar);
         tvSongCount = findViewById(R.id.tvSongCount);
         rvSongs = findViewById(R.id.rvSongs);
         emptyState = findViewById(R.id.emptyState);
 
+        // Set up the Toolbar with a back navigation button
         setSupportActionBar(toolbar);
         toolbar.setNavigationOnClickListener(v -> finish());
+
+        // Clear default title to use custom layout styling if needed
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("");
         }
@@ -61,6 +66,8 @@ public class TopPlayedActivity extends AppCompatActivity implements SongAdapter.
 
     private void loadTopPlayed() {
         songs = dbHelper.getTopPlayedSongs();
+
+        // Update the UI with the number of top songs found
         tvSongCount.setText(songs.size() + (songs.size() == 1 ? " Song" : " Songs"));
 
         if (songs.isEmpty()) {
