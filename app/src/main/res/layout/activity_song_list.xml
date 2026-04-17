@@ -5,19 +5,28 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/backgroundColor"
-    tools:context="com.example.echobox.activities.SongListActivity">
+    tools:context=".activities.SongListActivity">
 
     <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@android:color/transparent"
         app:elevation="0dp">
 
         <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:id="@+id/collapsingToolbar"
             android:layout_width="match_parent"
-            android:layout_height="220dp"
+            android:layout_height="240dp"
+            app:contentScrim="@color/surfaceColor"
             app:layout_scrollFlags="scroll|exitUntilCollapsed"
             app:titleEnabled="false">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/card_gradient_purple"
+                android:alpha="0.3"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -27,10 +36,11 @@
                 android:padding="24dp">
 
                 <TextView
+                    android:id="@+id/tvHeaderTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-black"
-                    android:text="My Tracks"
+                    android:text="My Music"
                     android:textColor="@color/onBackground"
                     android:textSize="36sp" />
 
@@ -38,7 +48,8 @@
                     android:id="@+id/tvSongCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:alpha="0.6"
+                    android:layout_marginTop="4dp"
+                    android:alpha="0.7"
                     android:text="0 Songs"
                     android:textColor="@color/onBackground"
                     android:textSize="14sp" />
@@ -49,7 +60,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 app:layout_collapseMode="pin"
-                app:navigationIcon="@android:drawable/ic_menu_revert" />
+                app:navigationIcon="@android:drawable/ic_menu_revert"
+                app:navigationIconTint="@color/onBackground" />
 
         </com.google.android.material.appbar.CollapsingToolbarLayout>
     </com.google.android.material.appbar.AppBarLayout>

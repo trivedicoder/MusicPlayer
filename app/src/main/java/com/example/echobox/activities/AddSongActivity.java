@@ -78,8 +78,6 @@ public class AddSongActivity extends AppCompatActivity {
             return;
         }
 
-        btnUpload.setEnabled(false);
-
         String id = UUID.randomUUID().toString();
         String ownerId = currentUser.getUid();
 
@@ -89,37 +87,32 @@ public class AddSongActivity extends AppCompatActivity {
                 .child(id + ".mp3");
 
         ref.putFile(audioUri)
-                .addOnSuccessListener(taskSnapshot ->
-                        ref.getDownloadUrl().addOnSuccessListener(downloadUri -> {
-                            Song song = new Song(
-                                    id,
-                                    ownerId,
-                                    title,
-                                    artist,
-                                    downloadUri.toString(),
-                                    0
-                            );
+                .addOnSuccessListener(taskSnapshot -> {
+                    Toast.makeText(this, "File uploaded to Storage", Toast.LENGTH_SHORT).show();
 
-                            db.collection("songs")
-                                    .document(id)
-                                    .set(song)
-                                    .addOnSuccessListener(unused -> {
-                                        btnUpload.setEnabled(true);
-                                        Toast.makeText(this, "Upload successful", Toast.LENGTH_SHORT).show();
-                                        finish();
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        btnUpload.setEnabled(true);
-                                        Toast.makeText(this, "Save failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                                    });
-                        }).addOnFailureListener(e -> {
-                            btnUpload.setEnabled(true);
-                            Toast.makeText(this, "URL failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                        })
-                )
-                .addOnFailureListener(e -> {
-                    btnUpload.setEnabled(true);
-                    Toast.makeText(this, "Upload failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                });
+                    ref.getDownloadUrl().addOnSuccessListener(downloadUri -> {
+                        Song song = new Song(
+                                id,
+                                ownerId,
+                                title,
+                                artist,
+                                downloadUri.toString(),
+                                0
+                        );
+
+                        db.collection("songs")
+                                .document(id)
+                                .set(song)
+                                .addOnSuccessListener(unused -> {
+                                    Toast.makeText(this, "Song saved to Firestore", Toast.LENGTH_LONG).show();
+                                    finish();
+                                })
+                                .addOnFailureListener(e ->
+                                        Toast.makeText(this, "Firestore save failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                    }).addOnFailureListener(e ->
+                            Toast.makeText(this, "Download URL failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Upload failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
     }
 }

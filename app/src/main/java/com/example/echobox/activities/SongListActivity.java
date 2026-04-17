@@ -39,18 +39,25 @@ public class SongListActivity extends AppCompatActivity {
         tvSongCount = findViewById(R.id.tvSongCount);
         fabAdd = findViewById(R.id.fabAddSongList);
 
-        adapter = new SongAdapter(songList, position -> {
-            Intent intent = new Intent(this, PlayerActivity.class);
-            intent.putExtra("songList", songList);
-            intent.putExtra("currentPosition", position);
-            startActivity(intent);
-        });
+        adapter = new SongAdapter(songList, new SongAdapter.ClickListener() {
+            @Override
+            public void onSongClick(int position) {
+                Intent intent = new Intent(SongListActivity.this, PlayerActivity.class);
+                intent.putExtra("songList", songList);
+                intent.putExtra("currentPosition", position);
+                startActivity(intent);
+            }
+
+            @Override
+            public void onDeleteClick(int position) {
+            }
+        }, false);
 
         rvSongs.setLayoutManager(new LinearLayoutManager(this));
         rvSongs.setAdapter(adapter);
 
         fabAdd.setOnClickListener(v ->
-                startActivity(new Intent(this, AddSongActivity.class)));
+                startActivity(new Intent(SongListActivity.this, AddSongActivity.class)));
     }
 
     @Override
@@ -59,12 +66,15 @@ public class SongListActivity extends AppCompatActivity {
         loadSongs();
     }
 
+
+
     private void loadSongs() {
         FirebaseUser currentUser = auth.getCurrentUser();
+
         if (currentUser == null) {
             songList.clear();
             adapter.notifyDataSetChanged();
-            tvSongCount.setText("0 Songs");
+            tvSongCount.setText("No user logged in");
             return;
         }
 
@@ -84,6 +94,8 @@ public class SongListActivity extends AppCompatActivity {
                     adapter.notifyDataSetChanged();
                     tvSongCount.setText(songList.size() + " Songs");
                 })
-                .addOnFailureListener(e -> tvSongCount.setText("Load failed"));
+                .addOnFailureListener(e -> {
+                    tvSongCount.setText("Load failed: " + e.getMessage());
+                });
     }
 }

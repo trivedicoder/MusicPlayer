@@ -33,6 +33,7 @@ public class HomeActivity extends AppCompatActivity {
         btnAddSongHome = findViewById(R.id.btnAddSongHome);
         btnLogout = findViewById(R.id.btnLogout);
         fabPlayer = findViewById(R.id.fabPlayer);
+        MaterialButton btnPlaylists = findViewById(R.id.btnPlaylists);
 
         sessionManager = new SessionManager(this);
 
@@ -53,6 +54,8 @@ public class HomeActivity extends AppCompatActivity {
 
             getSupportActionBar().setTitle("Hello, " + name + "!");
         }
+        btnPlaylists.setOnClickListener(v ->
+                startActivity(new Intent(HomeActivity.this, PlaylistListActivity.class)));
 
         cardMySongs.setOnClickListener(v ->
                 startActivity(new Intent(HomeActivity.this, SongListActivity.class)));

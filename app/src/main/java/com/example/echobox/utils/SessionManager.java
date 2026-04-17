@@ -29,10 +29,6 @@ public class SessionManager {
         return pref.getBoolean(IS_LOGIN, false);
     }
 
-    public String getUsername() {
-        return pref.getString(KEY_USERNAME, "");
-    }
-
     public String getUserEmail() {
         return pref.getString(KEY_EMAIL, "");
     }

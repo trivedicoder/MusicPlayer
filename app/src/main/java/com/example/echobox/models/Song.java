@@ -21,51 +21,21 @@ public class Song implements Serializable {
         this.playCount = playCount;
     }
 
-    public String getId() {
-        return id;
-    }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
-    public void setId(String id) {
-        this.id = id;
-    }
+    public String getOwnerId() { return ownerId; }
+    public void setOwnerId(String ownerId) { this.ownerId = ownerId; }
 
-    public String getOwnerId() {
-        return ownerId;
-    }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
 
-    public void setOwnerId(String ownerId) {
-        this.ownerId = ownerId;
-    }
+    public String getArtist() { return artist; }
+    public void setArtist(String artist) { this.artist = artist; }
 
-    public String getTitle() {
-        return title;
-    }
+    public String getUrl() { return url; }
+    public void setUrl(String url) { this.url = url; }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getArtist() {
-        return artist;
-    }
-
-    public void setArtist(String artist) {
-        this.artist = artist;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public long getPlayCount() {
-        return playCount;
-    }
-
-    public void setPlayCount(long playCount) {
-        this.playCount = playCount;
-    }
+    public long getPlayCount() { return playCount; }
+    public void setPlayCount(long playCount) { this.playCount = playCount; }
 }

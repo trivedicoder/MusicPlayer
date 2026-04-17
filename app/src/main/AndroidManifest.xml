@@ -17,6 +17,9 @@
         <activity android:name=".activities.AddSongActivity" android:exported="false" />
         <activity android:name=".activities.HomeActivity" android:exported="false" />
         <activity android:name=".activities.RegisterActivity" android:exported="false" />
+        <activity android:name=".activities.PlaylistListActivity" android:exported="false" />
+        <activity android:name=".activities.CreatePlaylistActivity" android:exported="false" />
+        <activity android:name=".activities.PlaylistSongsActivity" android:exported="false" />
 
         <activity
             android:name=".activities.LoginActivity"

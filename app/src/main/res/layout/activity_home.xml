@@ -136,6 +136,12 @@
                 android:textSize="16sp"
                 app:cornerRadius="16dp"
                 app:icon="@android:drawable/ic_input_add" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPlaylists"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="8dp"
+                android:text="Playlists" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnLogout"
@@ -148,6 +154,7 @@
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabPlayer"

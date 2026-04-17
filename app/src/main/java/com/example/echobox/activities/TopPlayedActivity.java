@@ -52,12 +52,20 @@ public class TopPlayedActivity extends AppCompatActivity {
 
         rvSongs.setLayoutManager(new LinearLayoutManager(this));
 
-        adapter = new SongAdapter(songs, position -> {
-            Intent intent = new Intent(TopPlayedActivity.this, PlayerActivity.class);
-            intent.putExtra("songList", songs);
-            intent.putExtra("currentPosition", position);
-            startActivity(intent);
-        });
+        adapter = new SongAdapter(songs, new SongAdapter.ClickListener() {
+            @Override
+            public void onSongClick(int position) {
+                Intent intent = new Intent(TopPlayedActivity.this, PlayerActivity.class);
+                intent.putExtra("songList", songs);
+                intent.putExtra("currentPosition", position);
+                startActivity(intent);
+            }
+
+            @Override
+            public void onDeleteClick(int position) {
+                // no delete in top played
+            }
+        }, false);
 
         rvSongs.setAdapter(adapter);
         fabAddSongList.hide();

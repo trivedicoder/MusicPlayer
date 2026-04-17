@@ -3,8 +3,10 @@ package com.example.echobox.adapters;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.echobox.R;
@@ -15,39 +17,53 @@ import java.util.ArrayList;
 public class SongAdapter extends RecyclerView.Adapter<SongAdapter.ViewHolder> {
 
     public interface ClickListener {
-        void onClick(int position);
+        void onSongClick(int position);
+        void onDeleteClick(int position);
     }
 
     private final ArrayList<Song> list;
     private final ClickListener listener;
+    private final boolean showDelete;
 
-    public SongAdapter(ArrayList<Song> list, ClickListener listener) {
+    public SongAdapter(ArrayList<Song> list, ClickListener listener, boolean showDelete) {
         this.list = list;
         this.listener = listener;
+        this.showDelete = showDelete;
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    static class ViewHolder extends RecyclerView.ViewHolder {
         TextView title, artist;
+        ImageButton btnDelete;
 
-        public ViewHolder(View v) {
-            super(v);
-            title = v.findViewById(R.id.tvTitle);
-            artist = v.findViewById(R.id.tvArtist);
+        ViewHolder(View itemView) {
+            super(itemView);
+            title = itemView.findViewById(R.id.tvTitle);
+            artist = itemView.findViewById(R.id.tvArtist);
+            btnDelete = itemView.findViewById(R.id.btnDeleteSong);
         }
     }
 
+    @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_song, parent, false);
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_song_with_delete, parent, false);
         return new ViewHolder(v);
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder h, int i) {
-        Song s = list.get(i);
-        h.title.setText(s.getTitle());
-        h.artist.setText(s.getArtist());
-        h.itemView.setOnClickListener(v -> listener.onClick(i));
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        Song s = list.get(position);
+        holder.title.setText(s.getTitle());
+        holder.artist.setText(s.getArtist());
+
+        holder.itemView.setOnClickListener(v -> listener.onSongClick(position));
+
+        if (showDelete) {
+            holder.btnDelete.setVisibility(View.VISIBLE);
+            holder.btnDelete.setOnClickListener(v -> listener.onDeleteClick(position));
+        } else {
+            holder.btnDelete.setVisibility(View.GONE);
+        }
     }
 
     @Override
